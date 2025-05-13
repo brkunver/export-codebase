@@ -1,4 +1,4 @@
-## export-codebase
+# export-codebase
 
 export-codebase is a CLI tool designed for Node.js projects. When you run npx export-codebase in your project directory, it reads all code and configuration files (excluding files listed in .gitignore, all .env files, and the node_modules directory) and combines their contents into a single project.txt file. Each file is prefixed with its relative path (e.g., //src/index.ts), followed by its code. This tool is useful for sharing or archiving your project's codebase in a single text file.
 
@@ -12,7 +12,7 @@ export-codebase is a CLI tool designed for Node.js projects. When you run npx ex
 ### Usage
 
 ```bash
-npx pack-code
+npx export-codebase
 ```
 
 ### Options
