@@ -1,0 +1,41 @@
+{
+  "name": "export-codebase",
+  "version": "0.0.1",
+  "description": "Aggregates project files into a single text file, respecting .gitignore.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "bin": {
+    "export-codebase": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "cli",
+    "tool",
+    "context",
+    "code-concatenator",
+    "llm"
+  ],
+  "author": "Burakhanunver <burakhanunver@gmail.com>",
+  "license": "GPL-3.0-only",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "fast-glob": "^3.3.2",
+    "ignore": "^5.3.1",
+    "minimist": "^1.2.8"
+  },
+  "devDependencies": {
+    "@types/minimist": "^1.2.5",
+    "@types/node": "^20.12.2",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
