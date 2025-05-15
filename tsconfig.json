@@ -7,12 +7,14 @@
     "outDir": "./dist", // tsup will handle output, but good for tsc checks
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "allowImportingTsExtensions": true,
     "strict": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "declaration": true, // Important for tsup to pick up if not using tsup's dts option
-    "sourceMap": true // Good for debugging
+    "sourceMap": true, // Good for debugging
+    "noEmit": true // Add this line to fix the allowImportingTsExtensions error
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
