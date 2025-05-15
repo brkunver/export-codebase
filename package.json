@@ -1,6 +1,6 @@
 {
   "name": "export-codebase",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "Aggregates project files into a single text file, respecting .gitignore.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
