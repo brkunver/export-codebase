@@ -4,7 +4,7 @@ import fg from "fast-glob"
 import ignore from "ignore"
 import chalk from "chalk"
 import { HARDCODED_IGNORES, BINARY_EXTENSIONS } from "./constants.ts"
-import { Logger } from "./logger.ts"
+import type { Logger } from "./logger.ts"
 
 export type FileContent = {
   filePath: string
@@ -27,11 +27,11 @@ export async function loadGitignore(projectRoot: string, logger: Logger) {
 }
 
 export async function findFiles(
-  projectRoot: string, 
-  outputFilename: string, 
+  projectRoot: string,
+  outputFilename: string,
   includeHidden: boolean,
   logger: Logger,
-  ig: ReturnType<typeof ignore.default>
+  ig: ReturnType<typeof ignore.default>,
 ) {
   const effectiveIgnores = [...HARDCODED_IGNORES, outputFilename]
 
@@ -77,23 +77,25 @@ export async function findFiles(
   return fileContentsResults.filter(Boolean) as FileContent[]
 }
 
-export type WriteResult = {
-  success: true
-  filePath: string
-  fileSize: number
-  totalLines: number
-} | {
-  success: false
-  filePath?: undefined
-  fileSize?: undefined
-  totalLines?: undefined
-}
+export type WriteResult =
+  | {
+      success: true
+      filePath: string
+      fileSize: number
+      totalLines: number
+    }
+  | {
+      success: false
+      filePath?: undefined
+      fileSize?: undefined
+      totalLines?: undefined
+    }
 
 export async function writeOutputFile(
   projectRoot: string,
   outputFilename: string,
   validFileContents: FileContent[],
-  logger: Logger
+  logger: Logger,
 ): Promise<WriteResult> {
   if (validFileContents.length === 0) {
     logger.warn("No suitable text files found to include in the output.")
@@ -125,7 +127,7 @@ export async function writeOutputFile(
   try {
     await fs.writeFile(outputFilePath, finalOutput.trimEnd())
     const stats = await fs.stat(outputFilePath)
-    
+
     return {
       success: true,
       filePath: outputFilePath,
