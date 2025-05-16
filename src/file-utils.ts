@@ -1,18 +1,22 @@
+// src/file-utils.ts
+
 import fs from "fs/promises"
 import path from "path"
 import fg from "fast-glob"
-import ignore from "ignore"
+import ignore from "ignore" // The ignore factory function
+import type { Ignore } from "ignore" // Type for an ignore instance
 import chalk from "chalk"
 import { HARDCODED_IGNORES, BINARY_EXTENSIONS } from "./constants.ts"
 import type { Logger } from "./logger.ts"
+import { generateProjectStructure } from "./formatter.ts"
 
 export type FileContent = {
   filePath: string
   content: string
 }
 
-export async function loadGitignore(projectRoot: string, logger: Logger) {
-  const ig = ignore.default()
+export async function loadGitignore(projectRoot: string, logger: Logger): Promise<Ignore> {
+  const ig = ignore.default() // Create an ignore instance
 
   try {
     const gitignorePath = path.join(projectRoot, ".gitignore")
@@ -20,9 +24,9 @@ export async function loadGitignore(projectRoot: string, logger: Logger) {
     ig.add(gitignoreContent)
     logger.log(".gitignore rules loaded.")
   } catch (error) {
-    logger.warn(".gitignore not found or unreadable. Proceeding with default and hardcoded exclusions only.")
+    logger.warn(".gitignore not found or unreadable. Proceeding with hardcoded exclusions for file content processing.")
+    // If .gitignore is not found, `ig` will be an empty ignore instance, which means it won't ignore anything by itself.
   }
-
   return ig
 }
 
@@ -31,42 +35,59 @@ export async function findFiles(
   outputFilename: string,
   includeHidden: boolean,
   logger: Logger,
-  ig: ReturnType<typeof ignore.default>,
-) {
-  const effectiveIgnores = [...HARDCODED_IGNORES, outputFilename]
+  gitignoreRules: Ignore, // .gitignore rules instance
+): Promise<FileContent[]> {
+  // Explicit return type
+  // These ignores are for fast-glob's initial filtering.
+  // outputFilename is added here to prevent fast-glob from even considering it.
+  const fgIgnorePatterns = [...HARDCODED_IGNORES, outputFilename.replace(/\\/g, "/")]
 
   const files = await fg("**/*", {
     cwd: projectRoot,
-    ignore: effectiveIgnores,
-    dot: includeHidden,
+    ignore: fgIgnorePatterns, // Patterns for fast-glob's internal filtering
+    dot: includeHidden, // Whether to include dotfiles (if not ignored)
     onlyFiles: true,
-    stats: false,
-    absolute: false,
-    caseSensitiveMatch: process.platform !== "win32",
+    stats: false, // We don't need file stats from fast-glob here
+    absolute: false, // Get paths relative to cwd
+    caseSensitiveMatch: process.platform !== "win32", // OS-dependent case sensitivity
   })
 
-  logger.log(`Found ${chalk.bold(files.length.toString())} potential files after initial filtering.`)
+  logger.log(`Found ${chalk.bold(files.length.toString())} potential files after fast-glob filtering.`)
 
   const contentPromises: Promise<FileContent | null>[] = []
 
   for (const relativeFilePath of files) {
-    if (ig.ignores(relativeFilePath)) {
+    // Normalize path for consistent matching against .gitignore rules
+    const normalizedRelativeFilePath = relativeFilePath.replace(/\\/g, "/")
+
+    // Now, apply the .gitignore rules loaded separately
+    if (gitignoreRules.ignores(normalizedRelativeFilePath)) {
+      // logger.log(`Skipping (due to .gitignore): ${chalk.gray(normalizedRelativeFilePath)}`); // Optional: for debugging
       continue
     }
 
-    const ext = path.extname(relativeFilePath).toLowerCase()
+    const ext = path.extname(normalizedRelativeFilePath).toLowerCase()
     if (BINARY_EXTENSIONS.has(ext)) {
+      // logger.log(`Skipping binary file: ${chalk.magenta(normalizedRelativeFilePath)}`); // Optional: for debugging
       continue
     }
+
+    // The output file itself should have been excluded by fgIgnorePatterns.
+    // An explicit check against the normalized outputFilename might be redundant but safe.
+    // if (normalizedRelativeFilePath === outputFilename.replace(/\\/g, '/')) {
+    //   continue;
+    // }
 
     const absoluteFilePath = path.join(projectRoot, relativeFilePath)
     contentPromises.push(
       fs
         .readFile(absoluteFilePath, "utf-8")
-        .then(content => ({ filePath: relativeFilePath, content }))
+        .then(content => ({ filePath: normalizedRelativeFilePath, content })) // Store normalized path
         .catch(err => {
           logger.warn(
-            `Could not read file: ${chalk.magenta(relativeFilePath)}. Error: ${(err as Error).message}. Skipping.`,
+            `Could not read file: ${chalk.magenta(normalizedRelativeFilePath)}. Error: ${
+              (err as Error).message
+            }. Skipping.`,
           )
           return null
         }),
@@ -74,7 +95,9 @@ export async function findFiles(
   }
 
   const fileContentsResults = await Promise.all(contentPromises)
-  return fileContentsResults.filter(Boolean) as FileContent[]
+  const validFiles = fileContentsResults.filter(Boolean) as FileContent[]
+  logger.log(`Successfully read ${chalk.bold(validFiles.length.toString())} text files after all filters.`)
+  return validFiles
 }
 
 export type WriteResult =
@@ -86,33 +109,35 @@ export type WriteResult =
     }
   | {
       success: false
-      filePath?: undefined
+      filePath?: string // filePath can be undefined if writing failed early
       fileSize?: undefined
       totalLines?: undefined
     }
-
-import { generateProjectStructure } from "./formatter.ts"
 
 export async function writeOutputFile(
   projectRoot: string,
   outputFilename: string,
   validFileContents: FileContent[],
   logger: Logger,
+  gitignoreRules: Ignore, // .gitignore rules for structure generation
 ): Promise<WriteResult> {
   const outputPath = path.join(projectRoot, outputFilename)
 
   try {
-    const projectStructure =  generateProjectStructure(projectRoot)
+    // Generate project structure; it uses gitignoreRules and outputFilename internally for its specific ignores.
+    const projectStructure = generateProjectStructure(projectRoot, gitignoreRules, outputFilename)
 
-    let finalOutput = `${projectStructure}\n\n`
-    let totalLines = projectStructure.split("\n").length + 2 
+    let finalOutput = `${projectStructure}\n\n` // Two newlines after structure block
+    let totalLines = projectStructure.split("\n").length + 2 // Account for structure lines + 2 newlines
 
     for (const { filePath, content } of validFileContents) {
-      finalOutput += `// ${filePath}\n\n${content.trim()}\n\n`
-      totalLines += content.split("\n").length + 3 
+      // filePath should already be normalized from findFiles
+      finalOutput += `// ${filePath}\n\n${content.trim()}\n\n` // Two newlines after content block
+      totalLines += content.split("\n").length + 3 // Account for comment, content lines, and 3 newlines (before comment, after content, after block)
     }
 
-    await fs.writeFile(outputPath, finalOutput.trimEnd())
+    // Trim trailing whitespace from the whole string, then ensure a final newline.
+    await fs.writeFile(outputPath, finalOutput.trimEnd() + "\n")
     const stats = await fs.stat(outputPath)
 
     return {
@@ -123,6 +148,6 @@ export async function writeOutputFile(
     }
   } catch (writeError) {
     logger.error(`Failed to write output file: ${chalk.cyan(outputPath)}`, writeError)
-    return { success: false }
+    return { success: false, filePath: outputPath } // Include filePath even on failure if known
   }
 }
