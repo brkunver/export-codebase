@@ -2,6 +2,8 @@ const DEFAULT_OUTPUT_FILENAME = "project.txt"
 
 const HARDCODED_IGNORES = [
   "node_modules/**",
+  "node_modules",
+  ".git",
   ".git/**",
   ".env",
   ".env.*",
@@ -10,9 +12,13 @@ const HARDCODED_IGNORES = [
   "yarn.lock",
   "pnpm-lock.yaml",
   "dist/**",
+  "dist",
   "build/**",
+  "build",
   "out/**",
+  "out",
   "coverage/**",
+  "coverage",
   "*.log",
   ".DS_Store",
   "Thumbs.db",
