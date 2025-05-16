@@ -1,5 +1,3 @@
-// src/index.ts
-
 import chalk from "chalk"
 import { createLogger } from "./logger.ts"
 import { parseArgs } from "./args.ts"

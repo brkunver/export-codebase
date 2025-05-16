@@ -1,5 +1,3 @@
-// src/file-utils.ts
-
 import fs from "fs/promises"
 import path from "path"
 import fg from "fast-glob"
