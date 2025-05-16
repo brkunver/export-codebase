@@ -91,51 +91,38 @@ export type WriteResult =
       totalLines?: undefined
     }
 
+import { generateProjectStructure } from "./formatter.ts"
+
 export async function writeOutputFile(
   projectRoot: string,
   outputFilename: string,
   validFileContents: FileContent[],
   logger: Logger,
 ): Promise<WriteResult> {
-  if (validFileContents.length === 0) {
-    logger.warn("No suitable text files found to include in the output.")
-    const emptyOutputFilePath = path.join(projectRoot, outputFilename)
-    try {
-      await fs.writeFile(
-        emptyOutputFilePath,
-        `// No processable text files found in project at ${new Date().toISOString()}\n// Searched in: ${projectRoot}\n`,
-      )
-      logger.success(`Wrote empty state to ${chalk.cyan(emptyOutputFilePath)}.`)
-      return { success: true, filePath: emptyOutputFilePath, fileSize: 0, totalLines: 0 }
-    } catch (writeError) {
-      logger.error(`Failed to write empty state file: ${chalk.cyan(emptyOutputFilePath)}`, writeError)
-      return { success: false }
-    }
-  }
+  const outputPath = path.join(projectRoot, outputFilename)
 
-  validFileContents.sort((a, b) => a.filePath.localeCompare(b.filePath))
-
-  let finalOutput = ""
-  let totalLines = 0
-
-  for (const { filePath, content } of validFileContents) {
-    finalOutput += `// ${filePath}\n\n${content.trim()}\n\n`
-    totalLines += content.split("\n").length
-  }
-
-  const outputFilePath = path.join(projectRoot, outputFilename)
   try {
-    await fs.writeFile(outputFilePath, finalOutput.trimEnd())
-    const stats = await fs.stat(outputFilePath)
+    const projectStructure =  generateProjectStructure(projectRoot)
+
+    let finalOutput = `${projectStructure}\n\n`
+    let totalLines = projectStructure.split("\n").length + 2 
+
+    for (const { filePath, content } of validFileContents) {
+      finalOutput += `// ${filePath}\n\n${content.trim()}\n\n`
+      totalLines += content.split("\n").length + 3 
+    }
+
+    await fs.writeFile(outputPath, finalOutput.trimEnd())
+    const stats = await fs.stat(outputPath)
 
     return {
       success: true,
-      filePath: outputFilePath,
+      filePath: outputPath,
       fileSize: stats.size,
       totalLines,
     }
   } catch (writeError) {
-    logger.error(`Failed to write output file: ${chalk.cyan(outputFilePath)}`, writeError)
+    logger.error(`Failed to write output file: ${chalk.cyan(outputPath)}`, writeError)
     return { success: false }
   }
 }
