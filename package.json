@@ -12,6 +12,7 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "start": "node dist/index.js",
+    "fulltest" : "npm run build && npm run start",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
