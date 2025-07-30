@@ -11,6 +11,8 @@ const HARDCODED_IGNORES = [
   "package-lock.json",
   "yarn.lock",
   "pnpm-lock.yaml",
+  "bun.lockb",
+  "bun.lock",
   "dist/**",
   "dist",
   "build/**",
