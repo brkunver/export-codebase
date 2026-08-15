@@ -16,7 +16,7 @@ It is designed for sharing or archiving a codebase in one file, and for feeding 
 | Module system   | ESM (`"type": "module"`, `module: NodeNext`)                                                                        |
 | Runtime         | Node.js >= 18                                                                                                       |
 | Bundler         | [tsup](https://tsup.egoist.dev/) (ESM output, single file, dts + sourcemaps, minified)                              |
-| Package manager | bun (lockfile: `bun.lock`); `npm` only used in CI for publishing                                                    |
+| Package manager | npm (lockfile: `package-lock.json`)                                                                                 |
 | Dependencies    | `chalk` (colored output), `fast-glob` (file discovery), `ignore` (gitignore matching), `minimist` (CLI arg parsing) |
 | Code style      | Prettier (config in `.prettierrc.json`: no semicolons, double quotes, 120 print width, 2-space indent)              |
 
@@ -131,7 +131,7 @@ There is **no automated test suite** in this repo. Verify changes with `npm run 
 
 ## Release / Branching Notes
 
-- **Releases are fully automated**: pushing/merging to `main` triggers `.github/workflows/publish.yml`, which installs with bun, builds, and runs `npm publish --provenance` via the npm trusted publisher (OIDC — no token secret needed). A version guard skips the publish step when the version is already on npm.
+- **Releases are fully automated**: pushing/merging to `main` triggers `.github/workflows/publish.yml`, which installs with `npm ci`, builds, and runs `npm publish --provenance` via the npm trusted publisher (OIDC — no token secret needed). A version guard skips the publish step when the version is already on npm.
 - `push.sh` is deprecated/unused — do not treat it as the release path.
 - Bump `package.json`'s `version` before merging to `main` to trigger a real publish.
 - The `.gitignore` excludes `.freebuff`, `.cursorrules`, `.windsurfrules`, `.vscode`, and output files like `project.txt` / `custom_output.txt` — generated artifacts should not be committed.
