@@ -10,7 +10,7 @@ type Logger = {
 
 function createLogger(options: { silent: boolean } = { silent: false }): Logger {
   const { silent } = options
-  
+
   return {
     log: (...args: any[]) => {
       if (!silent) console.log(...args)

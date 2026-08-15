@@ -25,16 +25,16 @@
   "author": "Burakhanunver <burakhanunver@gmail.com>",
   "license": "GPL-3.0-only",
   "dependencies": {
-    "chalk": "^5.3.0",
-    "fast-glob": "^3.3.2",
-    "ignore": "^5.3.1",
+    "chalk": "^5.6.2",
+    "fast-glob": "^3.3.3",
+    "ignore": "^5.3.2",
     "minimist": "^1.2.8"
   },
   "devDependencies": {
     "@types/minimist": "^1.2.5",
-    "@types/node": "^20.12.2",
-    "tsup": "^8.0.2",
-    "typescript": "^5.4.3"
+    "@types/node": "^20.19.43",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=18.0.0"
