@@ -6,14 +6,14 @@
   "types": "dist/index.d.ts",
   "type": "module",
   "bin": {
-    "export-codebase": "./dist/index.js"
+    "export-codebase": "dist/index.js"
   },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
     "start": "node dist/index.js",
-    "fulltest": "bun run build && bun run start",
-    "prepublishOnly": "bun run build"
+    "fulltest": "npm run build && npm run start",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "cli",
