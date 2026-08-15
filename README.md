@@ -1,32 +1,187 @@
 # export-codebase
+
 [![npm](https://img.shields.io/npm/v/export-codebase)](https://www.npmjs.com/package/export-codebase)
 [![npm downloads](https://img.shields.io/npm/dm/export-codebase)](https://www.npmjs.com/package/export-codebase)
 
-export-codebase is a CLI tool designed for Node.js projects. When you run npx export-codebase in your project directory, it reads all code and configuration files (excluding files listed in .gitignore, all .env files, and the node_modules directory) and combines their contents into a single project.txt file. Each file is prefixed with its relative path (e.g., //src/index.ts), followed by its code. This tool is useful for sharing or archiving your project's codebase in a single text file.
+A simple CLI tool that exports a project's relevant text files into a single, structured file.
 
-### Features
+`export-codebase` is useful when you want to share a codebase, archive a project, or provide an entire project as context to an LLM.
 
-- Ignores files and folders specified in .gitignore
-- Always excludes .env files and node_modules directory
-- Supports JavaScript, TypeScript, and configuration files
-- Outputs all code into a single, well-structured project.txt
+## Features
 
-### Usage
+- Respects your project's `.gitignore`
+- Automatically excludes `node_modules`, `.git`, build outputs, lock files, and environment files
+- Keeps `.env.example` while excluding other `.env` files
+- Skips binary files
+- Skips files larger than 1 MB
+- Generates an ASCII project structure
+- Preserves each file's relative path in the output
+- Supports custom output filenames
+- Supports hidden files when explicitly enabled
+- Works with any project, regardless of programming language
+
+## Installation
+
+You don't need to install it globally.
+
+Run it directly with `npx`:
 
 ```bash
 npx export-codebase
 ```
 
-### Options
+Or install it as a dependency:
 
-- `-o, --output <filename>`: Specify the output file name (default: "project.txt")
-- `-s, --silent`: Suppress informational logs (errors and final summary will still be shown)
-- `-h, --help`: Display this help message
-- `--include-hidden`: Process hidden files and folders (those starting with '.')
-  that are not explicitly ignored by .gitignore or other rules.
+```bash
+npm install export-codebase
+```
 
-### License
+## Usage
 
-This project is licensed under the GNU General Public License v3.0.  
-See the [LICENSE](./LICENSE) file or read more at:  
-https://www.gnu.org/licenses/gpl-3.0.html
+Run the command from the root of your project:
+
+```bash
+npx export-codebase
+```
+
+By default, it creates:
+
+```text
+project.txt
+```
+
+The generated file contains the project structure followed by the contents of the relevant files.
+
+Example:
+
+```text
+// Project structure
+my-project/
+├── src/
+│   ├── index.ts
+│   └── utils.ts
+├── package.json
+└── README.md
+
+// src/index.ts
+
+import { hello } from "./utils.ts"
+
+hello()
+
+// src/utils.ts
+
+export function hello() {
+  console.log("Hello, world!")
+}
+```
+
+This makes it easy to copy an entire project into an LLM or share it as a single file.
+
+## Options
+
+### Custom output file
+
+Use `-o` or `--output` to specify the output filename:
+
+```bash
+npx export-codebase -o codebase.txt
+```
+
+### Silent mode
+
+Use `-s` or `--silent` to suppress informational logs:
+
+```bash
+npx export-codebase --silent
+```
+
+Warnings, errors, and the final summary are still displayed.
+
+### Include hidden files
+
+Hidden files and directories are excluded by default.
+
+Use `--include-hidden` to process hidden files that are not otherwise ignored:
+
+```bash
+npx export-codebase --include-hidden
+```
+
+## Exclusions
+
+`export-codebase` automatically excludes:
+
+- Files and directories matched by `.gitignore`
+- `node_modules`
+- `.git`
+- `.env` and other environment files
+- Build outputs such as `dist`, `build`, `out`, `coverage`, and `target`
+- Package manager lock files
+- Binary files
+- Files larger than 1 MB
+- The generated output file itself
+
+`.env.example` is intentionally not excluded.
+
+## Why?
+
+When working with AI coding tools, you often need to provide context from an entire codebase.
+
+Copying files manually is tedious, while sending an entire directory can include unnecessary files such as dependencies, build artifacts, binaries, and secrets.
+
+`export-codebase` creates a clean, structured representation of your project in a single file.
+
+```text
+Project
+  ↓
+export-codebase
+  ↓
+project.txt
+  ↓
+LLM / sharing / archiving
+```
+
+## Requirements
+
+- Node.js 18 or newer
+
+## Development
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/brkunver/export-codebase.git
+cd export-codebase
+npm install
+```
+
+Build the project:
+
+```bash
+npm run build
+```
+
+Run the CLI:
+
+```bash
+npm start
+```
+
+Run the manual smoke test:
+
+```bash
+npm run fulltest
+```
+
+## License
+
+This project is licensed under the GNU General Public License v3.0.
+
+See the [LICENSE](./LICENSE) file for details.
+
+## Repository
+
+[GitHub](https://github.com/brkunver/export-codebase)
+
+[NPM](https://www.npmjs.com/package/export-codebase)
