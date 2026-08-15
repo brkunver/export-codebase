@@ -18,27 +18,34 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      # Sets up Node.js and configures the npm registry auth (OIDC trusted publisher exchange).
+      - name: Check if version is already published
+        id: version-check
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+
+          if npm view "export-codebase@$VERSION" version >/dev/null 2>&1; then
+            echo "Version $VERSION is already published. Nothing to do."
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Version $VERSION is not published. Continuing."
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup Node.js
+        if: steps.version-check.outputs.should_publish == 'true'
         uses: actions/setup-node@v6
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
+        if: steps.version-check.outputs.should_publish == 'true'
         run: npm ci
 
       - name: Build
+        if: steps.version-check.outputs.should_publish == 'true'
         run: npm run build
 
-      - name: Skip if version already published
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          if npm view export-codebase@$VERSION version >/dev/null 2>&1; then
-            echo "Version $VERSION already published — skipping."
-            exit 0
-          fi
-
-      # Trusted publisher (OIDC) — no NODE_AUTH_TOKEN needed.
       - name: Publish
+        if: steps.version-check.outputs.should_publish == 'true'
         run: npm publish --provenance
