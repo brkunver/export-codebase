@@ -21,6 +21,11 @@ const HARDCODED_IGNORES = [
   "out",
   "coverage/**",
   "coverage",
+  "target/**", // Rust build artifacts
+  "target",
+  "coverage.out", // Go coverage output
+  "Cargo.lock", // Rust lockfile (consistent with other lockfiles)
+  "go.sum", // Go checksum file
   "*.log",
   ".DS_Store",
   "Thumbs.db",
@@ -74,6 +79,13 @@ const BINARY_EXTENSIONS = new Set([
   ".jar",
   ".bin",
   ".img",
+  ".o", // Object files (C/C++/Rust)
+  ".a", // Static archives (C/C++/Rust/Go)
+  ".rlib", // Rust library artifacts
+  ".rmeta", // Rust metadata artifacts
 ])
 
-export { DEFAULT_OUTPUT_FILENAME, HARDCODED_IGNORES, BINARY_EXTENSIONS }
+// Files larger than this (in bytes) are skipped — too large to be useful as text context.
+const MAX_FILE_SIZE_BYTES = 1024 * 1024 // 1 MB
+
+export { DEFAULT_OUTPUT_FILENAME, HARDCODED_IGNORES, BINARY_EXTENSIONS, MAX_FILE_SIZE_BYTES }

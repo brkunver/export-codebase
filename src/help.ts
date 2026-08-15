@@ -22,11 +22,12 @@ ${chalk.bold("Options:")}
 
 ${chalk.bold("Exclusions by Default:")}
   - Files and directories listed in .gitignore
-  - Standard ignored patterns: node_modules, .git, common build outputs (dist, build, out), etc.
+  - Standard ignored patterns: node_modules, .git, common build outputs (dist, build, out, target), etc.
   - Environment files (.env, .env.*, except .env.example)
-  - Lock files (package-lock.json, yarn.lock, pnpm-lock.yaml)
+  - Lock files (package-lock.json, yarn.lock, pnpm-lock.yaml, Cargo.lock, go.sum)
   - The output file itself
-  - Binary files (based on common extensions)
+  - Binary files (based on common extensions, incl. object/archive files)
+  - Files larger than 1 MB (skipped as too large for text context)
 `)
 }
 

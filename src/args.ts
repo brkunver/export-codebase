@@ -22,7 +22,6 @@ export async function parseArgs(): Promise<ProgramArgs | null> {
   if (argv.help) {
     await displayHelp()
     process.exit(0)
-    return null
   }
 
   return {

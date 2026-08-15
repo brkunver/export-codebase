@@ -4,9 +4,9 @@ import fg from "fast-glob"
 import ignore from "ignore" // The ignore factory function
 import type { Ignore } from "ignore" // Type for an ignore instance
 import chalk from "chalk"
-import { HARDCODED_IGNORES, BINARY_EXTENSIONS } from "./constants.ts"
+import { HARDCODED_IGNORES, BINARY_EXTENSIONS, MAX_FILE_SIZE_BYTES } from "./constants.ts"
 import type { Logger } from "./logger.ts"
-import { generateProjectStructure } from "./formatter.ts"
+import { generateProjectStructure, formatFileSize } from "./formatter.ts"
 
 export type FileContent = {
   filePath: string
@@ -79,8 +79,20 @@ export async function findFiles(
     const absoluteFilePath = path.join(projectRoot, relativeFilePath)
     contentPromises.push(
       fs
-        .readFile(absoluteFilePath, "utf-8")
-        .then(content => ({ filePath: normalizedRelativeFilePath, content })) // Store normalized path
+        .stat(absoluteFilePath)
+        .then(stats => {
+          if (stats.size > MAX_FILE_SIZE_BYTES) {
+            logger.warn(
+              `Skipping large file: ${chalk.magenta(normalizedRelativeFilePath)} (${formatFileSize(
+                stats.size,
+              )} exceeds ${formatFileSize(MAX_FILE_SIZE_BYTES)})`,
+            )
+            return null
+          }
+          return fs
+            .readFile(absoluteFilePath, "utf-8")
+            .then(content => ({ filePath: normalizedRelativeFilePath, content })) // Store normalized path
+        })
         .catch(err => {
           logger.warn(
             `Could not read file: ${chalk.magenta(normalizedRelativeFilePath)}. Error: ${
